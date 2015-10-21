@@ -77,7 +77,7 @@ class TaskReplaceActor(
   }
 
   def taskStateBehavior: PartialFunction[Any, Unit] = {
-    case MesosStatusUpdateEvent(slaveId, taskId, "TASK_RUNNING", _, `appId`, _, _, `version`, _, _) =>
+    case MesosStatusUpdateEvent(slaveId, taskId, "TASK_RUNNING", _, `appId`, _, _, _, `version`, _, _) =>
       handleNewHealthyTask(taskId)
   }
 
@@ -87,12 +87,12 @@ class TaskReplaceActor(
   }
 
   def commonBehavior: PartialFunction[Any, Unit] = {
-    case MesosStatusUpdateEvent(slaveId, taskId, ReplaceErrorState(_), _, `appId`, _, _, `version`, _, _) if !oldTaskIds(taskId) => // scalastyle:ignore line.size.limit
+    case MesosStatusUpdateEvent(slaveId, taskId, ReplaceErrorState(_), _, `appId`, _, _, _, `version`, _, _) if !oldTaskIds(taskId) => // scalastyle:ignore line.size.limit
       log.error(s"New task $taskId failed on slave $slaveId during app ${app.id.toString} restart")
       healthy -= taskId
       taskQueue.add(app)
 
-    case MesosStatusUpdateEvent(slaveId, taskId, ReplaceErrorState(_), _, `appId`, _, _, _, _, _) if oldTaskIds(taskId) => // scalastyle:ignore line.size.limit
+    case MesosStatusUpdateEvent(slaveId, taskId, ReplaceErrorState(_), _, `appId`, _, _, _, _, _, _) if oldTaskIds(taskId) => // scalastyle:ignore line.size.limit
       log.error(s"Old task $taskId failed on slave $slaveId during app ${app.id.toString} restart")
       oldTaskIds -= taskId
       conciliateNewTasks()
