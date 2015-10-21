@@ -72,7 +72,7 @@ object ResourceMatcher {
         findScalarResource(Resource.DISK, app.disk)
       }
 
-    logUnsatisfiedResources(offer, cpuMatchOpt, memMatchOpt, diskMatchOpt)
+    logUnsatisfiedResources(offer, acceptedResourceRoles, cpuMatchOpt, memMatchOpt, diskMatchOpt)
 
     def portsOpt: Option[Seq[RangesResource]] = new PortsMatcher(app, offer, acceptedResourceRoles).portRanges
 
@@ -102,6 +102,7 @@ object ResourceMatcher {
   }
 
   private[this] def logUnsatisfiedResources(offer: Offer,
+                                            acceptedResourceRoles: Set[String],
                                             cpuMatchOpt: Option[ScalarMatch],
                                             memMatchOpt: Option[ScalarMatch],
                                             diskMatchOpt: Option[ScalarMatch]): Unit = {
@@ -118,7 +119,9 @@ object ResourceMatcher {
         case (resource, None) =>
           s"$resource not in offer"
       }.mkString(", ")
-      log.info(s"Offer [${offer.getId.getValue}]. Not all basic resources satisfied: $basicResourceString")
+      log.info(s"Offer ID: [${offer.getId.getValue}]. Considered resources with roles: " +
+        s"[${acceptedResourceRoles.mkString("")}]. " +
+        s"Not all basic resources satisfied: $basicResourceString")
     }
   }
 }

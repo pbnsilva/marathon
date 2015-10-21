@@ -1,6 +1,6 @@
 package mesosphere.mesos
 
-import com.google.protobuf.ByteString
+import com.google.protobuf.{ TextFormat, ByteString }
 import mesosphere.marathon.Protos.HealthCheckDefinition.Protocol
 import mesosphere.marathon.Protos.MarathonTask
 import mesosphere.marathon._
@@ -68,7 +68,8 @@ class TaskBuilder(app: AppDefinition,
 
             log.info(
               s"Offer [${offer.getId.getValue}]. Insufficient resources for [${app.id}] (need cpus=${app.cpus}, " +
-                s"mem=${app.mem}, disk=${app.disk}, $portsString, available in offer:\n" + offer
+                s"mem=${app.mem}, disk=${app.disk}, $portsString, available in offer:\n" +
+                TextFormat.shortDebugString(offer)
             )
           }
 
