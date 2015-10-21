@@ -3,16 +3,20 @@
 # Get a list of applications
 #
 get:
-  description: Get the list of running applications. Several filters can be applied to filter the result list.
+  description:
+    Get the list of running applications. Several filters can be applied via the following query parameters.
   is: [ secured ]
   queryParameters:
     cmd:
-      description: the command of this application
+      required: false
+      description: Filter the result to only return apps whose `cmd` field contains the given value
       example: java
     id:
-      description: the id or part of the id of the application
+      required: false
+      description: Filter the result to only return apps whose `id` is or contains the given value
       example: /us-east/database/memsql
     label:
+      required: false
       description:
         A label selector query contains one or more label selectors, which are comma separated.
         Marathon supports three types of selectors existence-based, equality-based and set-based.
@@ -20,38 +24,39 @@ get:
         Labels and values must consist of alphanumeric characters plus `-` `_` and `.` `-A-Za-z0-9_.`.
         Any other character is possible, but must be escaped with a backslash character.
 
-        * <code>Existence based Selector Query</code> Matches the existence of a label
+        * <code>Existence based Selector Query</code> Matches the existence of a label <br/>
+          Example&#58; my_label,environment
 
-        * <code>Equality based Selector Query</code> Matches existence of labels and the (non) equality of the value.
+        * <code>Equality based Selector Query</code> Matches existence of labels and the (non) equality of the value.<br/>
+          Example&#58; environment==production, tier!=frontend
 
-        * <code>Set based Selector Query</code> Matches existence of labels and the (non) existence of the value in a given set
+        * <code>Set based Selector Query</code> Matches existence of labels and the (non) existence of the value in a given set<br/>
+          Example&#58; environment in (stage,production), tier notin (frontend, service)
 
-      example: environment==production, tier!=frontend\ tier, deployed in (us, eu), deployed notin (aa, bb)
+      example: my_label, environment==production, tier!=frontend\ tier, deployed in (us, eu), deployed notin (aa, bb)
     embed:
+      required: false
       description:
         Embeds nested resources that match the supplied path.
         You can specify this parameter multiple times with different values.
 
-        - <code>apps.tasks</code> Apps tasks are not embedded in the response
-        by default. This currently implies apps.deployments currently but that
-        will change in a future version.
+        - <code>apps.tasks</code> embed all tasks of each application<br/>
+        Note&#58; if this embed is definded, it automatically sets <code>apps.deployments</code> but this will change in a future release.
+        Please define all embeds explicit.
 
-        - <code>apps.counts</code> Apps task counts (tasksStaged, tasksRunning,
-        tasksHealthy, tasksUnhealthy) are currently embedded by default but this
-        will change in a future release.
+        - <code>apps.counts</code> embed all task counts (tasksStaged, tasksRunning, tasksHealthy, tasksUnhealthy) <br/>
+        Note&#58; currently embedded by default but this will change in a future release.
+        Please define all embeds explicit.
 
-        - <code>apps.deployments</code> This embeds the IDs of deployments related to this
-        app into deployments.
+        - <code>apps.deployments</code> embed all deployment identifier, if the related app currently is in deployment.
 
-        - <code>apps.lastTaskFailure</code> This embeds the lastTaskFailure for
-        every app if there is one.
+        - <code>apps.lastTaskFailure</code> embeds the lastTaskFailure for the application if there is one.
 
-        - <code>apps.failures</code> Apps last failures are not embedded in
-        the response by default. This implies apps.lastTaskFailure, apps.tasks, apps.counts and
-        apps.deployments.
+        - <code>apps.failures</code> Shorthand for apps.lastTaskFailure, apps.tasks, apps.counts and apps.deployments.<br/>
+        Note&#58; deprecated and will be removed in future versions
+        Please define all embeds explicit.
 
-        - <code>apps.taskStats</code> This exposes some task
-        statatistics in the JSON.
+        - <code>apps.taskStats</code> exposes task statatistics in the JSON.
 
       enum: [ apps.tasks, apps.count, apps.deployments, apps.lastTaskFailure, apps.failures, apps.taskStats ]
       repeat: true
@@ -79,20 +84,14 @@ put:
     It is possible to mix upgrades and installs.
 
     If you have more complex scenarios with upgrades, use the groups endpoint.
-  is: [ secured ]
+
+    Note&#58;  This operation will create a deployment. The operation finishes, if the deployment succeeds.
+     You can query the deployments endoint to see the status of the deployment.
+  is: [ secured, deployable ]
   body:
     application/json:
       example: !include examples/apps_create.json
   responses:
-    200:
-      description:
-        A deployment is started which has a unique deployment identifier.
-        The related deployment can be fetched from the /v2/deployments endpoint.
-        If the deployement is gone from the list of deployments, than this means it is finished.
-        As long as the deployment runs, the effect of that change operation is visible only partially.
-      body:
-        application/json:
-          example: !include examples/deployments_result.json
     409:
       description: There is an already deployed application with this name
       body:
@@ -127,7 +126,11 @@ put:
 # Create application
 #
 post:
-  description: Create and start a new application.
+  description:
+    Create and start a new application.
+
+    Note&#58;  This operation will create a deployment. The operation finishes, if the deployment succeeds.
+     You can query the deployments endoint to see the status of the deployment.
   is: [ secured ]
   body:
     application/json:
@@ -174,7 +177,7 @@ post:
   #
   get:
     description:
-      List the application with id `app_id`.
+      Get the application with id `app_id`.
       The response includes some status information besides the current configuration of the app.
       You can specify optional embed arguments, to get more embedded information.
     is: [ secured ]
@@ -184,25 +187,23 @@ post:
           Embeds nested resources that match the supplied path.
           You can specify this parameter multiple times with different values. <br/>
 
-          - <code>app.tasks</code>. App tasks are not embedded in the response
-          by default. This currently implies app.deployments currently but that
-          will change in a future version.
+          - <code>app.tasks</code>. embed tasks
+          Note&#58; if this embed is definded, it automatically sets <code>apps.deployments</code> but this will change in a future release.
+          Please define all embeds explicit.
 
-          - <code>app.counts</code>. App task counts (tasksStaged, tasksRunning,
-          tasksHealthy, tasksUnhealthy) are currently embedded by default but this
-          will change in a future release.
+          - <code>app.counts</code>. embed all task counts (tasksStaged, tasksRunning, tasksHealthy, tasksUnhealthy) <br/>
+          Note&#58; currently embedded by default but this will change in a future release.
+          Please define all embeds explicit.
 
-          - <code>app.deployments</code>. This embeds the IDs of deployments related to this
-          app into deployments.
-          <code>app.lastTaskFailure</code>. This embeds the lastTaskFailure for
-          every app if there is one.
+          - <code>app.deployments</code>. embed all deployment identifier, if the related app currently is in deployment.
 
-          - <code>app.failures</code>. App last failures are not embedded in
-          the response by default. This implies app.lastTaskFailure, app.tasks, app.counts and
-          app.deployments.
+          - <code>app.lastTaskFailure</code> embeds the lastTaskFailure for the application if there is one.
 
-          - <code>app.taskStats</code> This exposes some task
-          statatistics in the JSON.
+          - <code>app.failures</code> Shorthand for apps.lastTaskFailure, apps.tasks, apps.counts and apps.deployments.<br/>
+          Note&#58; deprecated and will be removed in future versions
+          Please define all embeds explicit.
+
+          - <code>app.taskStats</code> exposes task statatistics in the JSON.
 
         enum: [ app.tasks, app.count, app.deployments, app.lastTaskFailure, app.failures, app.taskStats ]
         repeat: true
@@ -227,43 +228,22 @@ post:
       Replaces parameters of a running application. If no application with the given id
       exists, it will be created. If there is an application with this id, all running instances get
       upgraded to the new definition.
-    is: [ secured ]
-    queryParameters:
-      force:
-        description: If there is an already running deployment that affects the
-        type: boolean
-        default: false
+
+
+      Note&#58;  This operation will create a deployment. The operation finishes, if the deployment succeeds.
+       You can query the deployments endoint to see the status of the deployment.
+    is: [ secured, deployable ]
     body:
       application/json:
         example: !include examples/app.json
         schema: AppDefinition
     responses:
-      200:
-        description:
-          A deployment is started which has a unique deployment identifier.
-          The related deployment can be fetched from the /v2/deployments endpoint.
-          If the deployement is gone from the list of deployments, than this means it is finished.
-          As long as the deployment runs, the effect of that change operation is visible only partially.
-        body:
-          application/json:
-            example: !include examples/deployments_result.json
       404:
         description: No task found with this `app_id`.
         body:
           application/json:
             example: |
               { "message": "App '/not_existent' does not exist" }
-      409:
-        description:
-          There is an already running deployment, that affects this application.
-          To override this deployment, use the force=true flag
-        body:
-          application/json:
-            example: |
-              {
-               "message":"App is locked by one or more deployments. Override with the option '?force=true'. View details at '/v2/deployments/<DEPLOYMENT_ID>'.",
-               "deployments":[{"id":"97c136bf-5a28-4821-9d94-480d9fbb01c8"}]
-              }
       400:
         description: The application definition provided in the body is not valid.
         body:
@@ -292,27 +272,17 @@ post:
   #
   delete:
     description: Destroy an application. All data about that application will be deleted.
-    is: [ secured ]
+
+      Note&#58;  This operation will create a deployment. The operation finishes, if the deployment succeeds.
+      You can query the deployments endoint to see the status of the deployment.
+    is: [ secured, deployable ]
     responses:
-      204:
-        description: The response will contain an empty body.
       404:
         description: No app with this id known.
         body:
           application/json:
             example: |
               {"message":"App '/not-existing' does not exist"}
-      409:
-        description:
-          There is an already running deployment, that affects this application.
-          To override this deployment, use the force=true flag
-        body:
-          application/json:
-            example: |
-              {
-               "message":"App is locked by one or more deployments. Override with the option '?force=true'. View details at '/v2/deployments/<DEPLOYMENT_ID>'.",
-               "deployments":[{"id":"97c136bf-5a28-4821-9d94-480d9fbb01c8"}]
-              }
 
   /restart:
     ###
@@ -320,17 +290,8 @@ post:
     #
     post:
       description: Restart all tasks of this application.
-      is: [ secured ]
+      is: [ secured, deployable ]
       responses:
-        200:
-          description:
-            A deployment is started which has a unique deployment identifier.
-            The related deployment can be fetched from the /v2/deployments endpoint.
-            If the deployement is gone from the list of deployments, than this means it is finished.
-            As long as the deployment runs, the effect of that change operation is visible only partially.
-          body:
-            application/json:
-              example: !include examples/deployments_result.json
         404:
           description: No task found with this `app_id`.
           body:
@@ -340,7 +301,7 @@ post:
 
   /tasks:
     ###
-    # Create application
+    # Get all tasks of an application
     #
     get:
       description: List all running tasks for application `app_id`.
@@ -362,11 +323,11 @@ post:
                 { "message": "App '/not_existent' does not exist" }
 
     ###
-    # Create application
+    # Kill tasks of an application
     #
     delete:
       description: Kill tasks that belong to the application `app_id`
-      is: [ secured ]
+      is: [ secured, deployable ]
       queryParameters:
         host:
           description: all tasks of that application on the supplied slave are killed
@@ -376,7 +337,8 @@ post:
           default: false
       responses:
         200:
-          description: The list of tasks that has been killed.
+          description: If scale=false, all tasks that were killed are returned.
+            If scale=true, than a deployment is triggered and the deployment is returned.
           body:
             application/json:
               example: !include examples/app_tasks.json
@@ -393,6 +355,7 @@ post:
       #
       delete:
         description: Kill the task with ID `task_id` that belongs to the application `app_id`.
+        is: [ secured, deployable ]
         queryParameters:
           scale:
             type: boolean
@@ -400,9 +363,11 @@ post:
             default: false
         responses:
           200:
-            description: The tasks that has been killed.
+            description: If scale=false, the task that was killed is returned.
+              If scale=true, than a deployment is triggered and the deployment is returned.
             body:
               application/json:
+                example: !include examples/app_task.json
           404:
             description: No task found with this task_id.
             body:
@@ -411,7 +376,7 @@ post:
                   {"message":"Task 'not-existing' does not exist"}
 
   ###
-  # Create application
+  # List versions
   #
   /versions:
     get:

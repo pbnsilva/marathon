@@ -23,12 +23,12 @@ get:
 
   delete:
     description:
-      If an application fails to often in a specified amount of time (according to the application definition),
+      If an application fails too often in a specified amount of time (according to the application definition),
       the task launch will be delayed.
       This delay can be removed by calling this endpoint.
       The effect is, that the tasks of this application will be launched immediately.
     responses:
       200:
-        description: the delay is resetted and no body is returned
+        description: the delay is reset and no body is returned
       404:
         description: there is no delay for the given application with id `app_id`

@@ -5,11 +5,11 @@ get:
   queryParameters:
     status:
       description: Filter the list of tasks by status
-      enum: [ TASK_STAGING, TASK_STARTING, TASK_RUNNING, TASK_FINISHED, TASK_FAILED, TASK_KILLED, TASK_LOST, TASK_ERROR ]
+      enum: [ TASK_STAGING, TASK_STARTING, TASK_RUNNING ]
       repeat: true
   responses:
     200:
-      description: The list of running tasks.
+      description: The list of all tasks disregarding their status, or a list of tasks matching the specified status filter.
       body:
         application/json:
           example: !include examples/tasks.json
@@ -23,6 +23,7 @@ get:
   post:
     description:
       Kill a list of running tasks.
+    is: [ secured, deployable ]
     queryParameters:
       scale:
         type: boolean
@@ -34,7 +35,11 @@ get:
           { "ids": [ "task1", "task2" ] }
     responses:
       200:
-        description: No content is send with this reponse.
+        description: If scale=false, all tasks that were killed are returned.
+          If scale=true, than a deployment is triggered and the deployment is returned.
+        body:
+          application/json:
+            example: !include examples/tasks.json
       400:
         description: There are unknown task ids, that can not be killed.
         body:

@@ -7,6 +7,9 @@ get:
     Please note a request to this endpoint will not be closed by the server.
     If an event happens on the server side, this event will be propagated to the client immediately.
     See [Server Sent Events](http://www.w3schools.com/html/html5_serversentevents.asp) for a more detailed explanation.
+
+    Note for ApiConsole&#58; this function will not yield the expected result from inside ApiConsole.
+
   responses:
     200:
       description: the list of all tasks waiting to be scheduled.
